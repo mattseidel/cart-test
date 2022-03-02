@@ -1,0 +1,19 @@
+GET HTTP://localhost:3000
+###
+GET HTTP://localhost:3000/search/621ed7807b69f439e4e1c896
+###
+POST HTTP://localhost:3000
+Content-Type: application/json
+{ 
+  "code":"4",
+  "client": "zorro",
+  "total": 2500,
+  "product": {
+    "name": "tomate",
+    "value": 500,
+    "amount": 5,
+    "description": "vejetal",
+    "condition": true
+  }
+
+}
