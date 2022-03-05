@@ -1,22 +1,17 @@
 const express = require('express');
+// const { getCart } = require('../contollers/cartControllers');
 var router = express.Router();
 var model = require("../models/cartmodel");
 
 
 // Getting all
-router.get('/', async (req, res) => {
-    try {
-        const cart = await model.find()
-        console.log('respuesta :', cart);
-        return res.send(cart)
-    } catch (err) {
-        res.status(500).json({ message: err.message })
-    }
-})
+router.get('/', getCart)
 // Getting One
-router.get('/search/:id', getCart, async (req, res) => {
-    await res.json(res.model)
-})
+// router.get('/search/:id', getCart, async (req, res) => {
+//     await res.json(res.model)
+// })
+
+router.post('/addItemsToCart', addItemsToCart);
 
 // Creating one
 router.post('/', async (req, res) => {
@@ -61,18 +56,66 @@ router.delete('/delete/:id', async (req, res) => {
     }
 })
 
-async function getCart(req, res) {
-
-    let cart;
-    try {
-        cart = await model.findById(req.params.id)
-        if (cart == null) { return res.status(404).json({ message: 'Cannot find cart' }) }
-        else return res.json(cart)
-
-    } catch (err) {
-        return res.status(500).json({ message: err.message })
+async function obtenerCarritos(idCart){
+    if(idCart){
+        const cart = await model.findById(idCart);
+        return {
+            response: 200,
+            cart
+        };
+    }else{
+        //crear un nuevo carrito
+        const cart = new model();
+        await cart.save();
+        return {
+            response: 200,
+            cart
+        };
     }
-
 }
+
+async function getCart(req, res){
+    try {
+        const {idCart} = req.body;
+        res.json(await obtenerCarritos(idCart));
+    }
+    catch (err) {
+        //res.status(500).json({ error: err });
+        console.log("Error of controlador getCart :" + err)
+    }
+};
+
+async function addItemsToCart(req,res){
+    try{
+        const {idCart, product, amount, price} = req.body;
+        const cart = await obtenerCarritos(idCart);
+        var productExist = false;
+        cart.products.forEach(item => {
+            if (item.product === product) {
+                item.amount += amount;
+                item.value = price;
+                total = item.value * item.amount;
+                productExist = true;
+            }
+        });
+        
+        if (!productExist) {
+            cart.products.push({
+                product: product,
+                amount: amount,
+                value: price,
+                total: amount * price
+            });
+        }
+        await cart.save()
+        return res.json({
+            response:200,
+            cart
+        }); 
+    }catch(e){
+
+    }
+}
+
 
 module.exports = router;
